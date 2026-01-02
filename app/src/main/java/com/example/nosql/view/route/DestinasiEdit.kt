@@ -1,4 +1,4 @@
 package com.example.nosql.view.route
 
-class DestinasiEdit {
-}
+import com.example.nosql.R
+
