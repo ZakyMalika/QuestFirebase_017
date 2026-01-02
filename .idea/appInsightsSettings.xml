@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.nosql" />
+                  <option name="mobileSdkAppId" value="1:1061989733014:android:82ae33ab6d8ef1bffae8b7" />
+                  <option name="projectId" value="nosql-3db57" />
+                  <option name="projectNumber" value="1061989733014" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
