@@ -12,8 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.nosql.ui.theme.NosqlTheme
-import com.example.nosql.view.DaftarSiswa
-import com.example.nosql.view.controllNavigasi.DatasiswaApp
+import com.example.nosql.view.controllNavigasi.DataSiswaApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +21,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             NosqlTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    DatasiswaApp(
+                    DataSiswaApp(
 //                        name = "Android",
                         modifier = Modifier.padding(innerPadding)
                     )
