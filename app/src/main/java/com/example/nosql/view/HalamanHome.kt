@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,6 +42,7 @@ import com.example.nosql.viewmodel.HomeViewModel
 import com.example.nosql.viewmodel.PenyediaViewModel
 import com.example.nosql.viewmodel.StatusUiSiswa
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -49,7 +51,11 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    LaunchedEffect(Unit) {
+        viewModel.loadSiswa()
+    }
+
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -64,55 +70,45 @@ fun HomeScreen(
             FloatingActionButton(
                 onClick = navigateToItemEntry,
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.padding(
-                    dimensionResource(id = R.dimen.padding_large)
-                )
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = stringResource(R.string.entry_siswa)
                 )
             }
-        }
+        },
     ) { innerPadding ->
         HomeBody(
-            statusUiSiswa = viewModel.statusUiSiswa,
+            siswaUiState = viewModel.statusUiSiswa,
             onSiswaClick = navigateToItemUpdate,
             retryAction = viewModel::loadSiswa,
-            modifier = modifier
+            modifier = Modifier // Gunakan Modifier baru agar padding bersih
                 .padding(innerPadding)
                 .fillMaxSize()
         )
     }
 }
-
 @Composable
 fun HomeBody(
-    statusUiSiswa: StatusUiSiswa,
-    onSiswaClick: (Int) -> Unit,
+    siswaUiState: StatusUiSiswa,
     retryAction: () -> Unit,
+    onSiswaClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        when (statusUiSiswa) {
-            is StatusUiSiswa.Loading -> LoadingScreen()
-            is StatusUiSiswa.Success -> DaftarSiswa(
-                itemSiswa = statusUiSiswa.Siswa,
-                onSiswaClick = { onSiswaClick(it.id.toInt()) }
-            )
-            is StatusUiSiswa.Error -> ErrorScreen(
-                retryAction,
-                modifier = modifier.fillMaxSize()
-            )
-        }
+    when (siswaUiState) {
+        is StatusUiSiswa.Loading -> OnLoading(modifier = modifier)
+        is StatusUiSiswa.Success -> DaftarSiswa(
+            siswaList = siswaUiState.Siswa,
+            onSiswaClick = {onSiswaClick(it.id.toInt())},
+            modifier = modifier.fillMaxWidth()
+        )
+        is StatusUiSiswa.Error -> OnError(retryAction = retryAction, modifier = modifier)
     }
 }
 
 @Composable
-fun LoadingScreen(modifier: Modifier = Modifier) {
+fun OnLoading(modifier: Modifier = Modifier) {
     Image(
         modifier = modifier.size(200.dp),
         painter = painterResource(R.drawable.loading_img),
@@ -121,19 +117,17 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ErrorScreen(
-    retryAction: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun OnError(retryAction: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = stringResource(R.string.gagal),
-            modifier = Modifier.padding(16.dp)
+        Image(
+            painter = painterResource(id = R.drawable.loading_img),
+            contentDescription = ""
         )
+        Text(text = stringResource(R.string.gagal), modifier = Modifier.padding(16.dp))
         Button(onClick = retryAction) {
             Text(stringResource(R.string.retry))
         }
@@ -142,13 +136,13 @@ fun ErrorScreen(
 
 @Composable
 fun DaftarSiswa(
-    itemSiswa: List<Siswa>,
+    siswaList: List<Siswa>,
     onSiswaClick: (Siswa) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
-        items(items = itemSiswa, key = { it.id }) { person ->
-            ItemSiswa(
+        items(items = siswaList, key = { it.id }) { person ->
+            SiswaCard(
                 siswa = person,
                 modifier = Modifier
                     .padding(dimensionResource(id = R.dimen.padding_small))
@@ -159,7 +153,7 @@ fun DaftarSiswa(
 }
 
 @Composable
-fun ItemSiswa(
+fun SiswaCard(
     siswa: Siswa,
     modifier: Modifier = Modifier
 ) {
@@ -168,32 +162,28 @@ fun ItemSiswa(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(
-                dimensionResource(id = R.dimen.padding_large)
-            ),
-            verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.padding_small)
-            )
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = siswa.nama,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(Modifier.weight(1f))
                 Icon(
                     imageVector = Icons.Default.Phone,
-                    contentDescription = null
-                )
-                Text(
-                    text = siswa.telpon,
-                    style = MaterialTheme.typography.titleMedium
+                    contentDescription = null,
                 )
             }
             Text(
                 text = siswa.alamat,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = siswa.telpon,
                 style = MaterialTheme.typography.titleMedium
             )
         }
